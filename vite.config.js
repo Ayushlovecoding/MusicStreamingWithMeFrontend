@@ -12,7 +12,7 @@ export default defineConfig({
     // This proxy forwards all /api requests to your backend
     proxy: {
       '/api': {
-        target: 'http://localhost:5000', // Your backend server
+        target: 'https://musicstreamingbyayush-sharma.netlify.app', // Your backend server
         changeOrigin: true,
         secure: false,
       }

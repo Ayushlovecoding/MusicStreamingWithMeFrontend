@@ -56,7 +56,7 @@ const PlayerContextProvider = (props) => {
         console.log('Direct play failed, trying proxy...');
         
         // Fallback to proxy
-        const proxyUrl = `http://localhost:5000/api/jiosaavn/stream?url=${encodeURIComponent(songInfo.streamUrl)}`;
+        const proxyUrl = `https://musicstreamingbyayush-sharma.netlify.app/api/jiosaavn/stream?url=${encodeURIComponent(songInfo.streamUrl)}`;
         audioRef.current.src = proxyUrl;
         
         await audioRef.current.play();
