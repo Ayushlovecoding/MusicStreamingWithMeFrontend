@@ -1,5 +1,7 @@
+// src/context/PlayerContext.jsx - UPDATED playRemote function
 import { createContext, useEffect, useRef, useState } from "react";
 import { songsData } from "../assets/frontend-assets/assets";
+import API_BASE_URL from '../config/api';
 
 export const PlayerContext = createContext();
 
@@ -15,7 +17,6 @@ const PlayerContextProvider = (props) => {
     totalTime: { second: 0, minute: 0 },
   });
 
-  // Play local song by ID
   const playWithId = async (id) => {
     const song = songsData.find((item) => item.id === id);
     if (song) {
@@ -25,12 +26,11 @@ const PlayerContextProvider = (props) => {
     }
   };
 
-  // Play remote song (from JioSaavn)
+  // ✅ FIXED: Play remote song with correct proxy URL
   const playRemote = async (songInfo) => {
     try {
       console.log('Playing remote song:', songInfo);
 
-      // Create a track object similar to local songs
       const remoteTrack = {
         id: 'remote-' + Date.now(),
         name: songInfo.name || 'Unknown Song',
@@ -41,8 +41,6 @@ const PlayerContextProvider = (props) => {
       };
 
       setTrack(remoteTrack);
-      
-      // Pause current audio first
       audioRef.current.pause();
       
       // Try direct URL first
@@ -55,8 +53,8 @@ const PlayerContextProvider = (props) => {
       } catch (error) {
         console.log('Direct play failed, trying proxy...');
         
-        // Fallback to proxy
-        const proxyUrl = `https://musicstreamingbyayush-sharma.netlify.app/api/jiosaavn/stream?url=${encodeURIComponent(songInfo.streamUrl)}`;
+        // ✅ FIXED: Use correct backend URL for proxy
+        const proxyUrl = `${API_BASE_URL}/api/jiosaavn/stream?url=${encodeURIComponent(songInfo.streamUrl)}`;
         audioRef.current.src = proxyUrl;
         
         await audioRef.current.play();
@@ -69,7 +67,6 @@ const PlayerContextProvider = (props) => {
     }
   };
 
-  // Play/Pause controls
   const play = () => {
     audioRef.current.play();
     setPlayStatus(true);
@@ -80,7 +77,6 @@ const PlayerContextProvider = (props) => {
     setPlayStatus(false);
   };
 
-  // Next/Previous song
   const previous = async () => {
     if (track.id > 0) {
       await playWithId(track.id - 1);
@@ -93,13 +89,11 @@ const PlayerContextProvider = (props) => {
     }
   };
 
-  // Seek functionality
   const seekSong = async (e) => {
     const seekPosition = (e.nativeEvent.offsetX / seekBg.current.offsetWidth) * audioRef.current.duration;
     audioRef.current.currentTime = seekPosition;
   };
 
-  // Update time
   useEffect(() => {
     const audio = audioRef.current;
     
@@ -142,7 +136,7 @@ const PlayerContextProvider = (props) => {
     play,
     pause,
     playWithId,
-    playRemote, // Make sure this is exported
+    playRemote,
     previous,
     next,
     seekSong,

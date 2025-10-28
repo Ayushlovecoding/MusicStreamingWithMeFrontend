@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { PlayerContext } from '../context/PlayerContext';
+import API_BASE_URL from '../config/api';
 
 export default function JioSaavnSearch() {
   const [searchText, setSearchText] = useState('');
@@ -13,7 +14,6 @@ export default function JioSaavnSearch() {
   async function searchSongs(e) {
     e?.preventDefault();
     
-    // Don't search if empty
     if (!searchText || searchText.trim().length === 0) {
       setErrorMessage('Please type something to search');
       return;
@@ -24,9 +24,9 @@ export default function JioSaavnSearch() {
     setSongs([]);
 
     try {
-      // Call your backend API
+      // ✅ FIXED: Use full backend URL
       const response = await fetch(
-        `/api/jiosaavn/search/songs?query=${encodeURIComponent(searchText)}&page=1&limit=20`
+        `${API_BASE_URL}/api/jiosaavn/search/songs?query=${encodeURIComponent(searchText)}&page=1&limit=20`
       );
 
       if (!response.ok) {
@@ -34,12 +34,10 @@ export default function JioSaavnSearch() {
       }
 
       const data = await response.json();
-      console.log('API Response:', data); // Debug: see what we get
+      console.log('API Response:', data);
 
-      // Extract songs from response
       let foundSongs = [];
       
-      // Try different response structures
       if (data.data && data.data.results) {
         foundSongs = data.data.results;
       } else if (data.results) {
@@ -64,24 +62,17 @@ export default function JioSaavnSearch() {
     }
   }
 
-  // Function to get the song URL
   function getSongUrl(song) {
-    // Try to find the download URL
     if (song.downloadUrl && Array.isArray(song.downloadUrl) && song.downloadUrl.length > 0) {
-      // Get the best quality (usually the last one)
       const bestQuality = song.downloadUrl[song.downloadUrl.length - 1];
       return bestQuality.url || bestQuality.link;
     }
-    
-    // Fallback to other URL fields
     return song.url || song.media_url || song.media_preview_url || null;
   }
 
-  // Function to get song image
   function getSongImage(song) {
     if (song.image) {
       if (Array.isArray(song.image) && song.image.length > 0) {
-        // Get highest quality image (usually last one)
         const highQuality = song.image[song.image.length - 1];
         return highQuality.url || highQuality.link;
       }
@@ -92,7 +83,6 @@ export default function JioSaavnSearch() {
     return song.albumImage || '/placeholder-album.png';
   }
 
-  // Function to get artist name
   function getArtistName(song) {
     if (song.artists && song.artists.primary) {
       return song.artists.primary.map(a => a.name).join(', ');
@@ -100,7 +90,6 @@ export default function JioSaavnSearch() {
     return song.primaryArtists || song.artist || song.more_info?.artistMap?.primary_artists?.map(a => a.name).join(', ') || 'Unknown Artist';
   }
 
-  // Function to play a song
   function playSong(song) {
     const songUrl = getSongUrl(song);
     
@@ -117,13 +106,12 @@ export default function JioSaavnSearch() {
       source: 'jiosaavn'
     };
 
-    console.log('Playing song:', songInfo); // Debug
+    console.log('Playing song:', songInfo);
     playRemote(songInfo);
   }
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      {/* Search Bar */}
       <div className="mb-8">
         <h1 className="heading-xl feature-text mb-4">Search Online Songs</h1>
         
@@ -145,21 +133,18 @@ export default function JioSaavnSearch() {
         </form>
       </div>
 
-      {/* Error Message */}
       {errorMessage && (
         <div className="bg-red-500/20 border border-red-500 text-red-200 px-4 py-3 rounded mb-6">
           {errorMessage}
         </div>
       )}
 
-      {/* Results */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {songs.map((song, index) => (
           <div
             key={song.id || index}
             className="browse-item flex gap-4 p-4"
           >
-            {/* Song Image */}
             <img
               src={getSongImage(song)}
               alt={song.name || song.title}
@@ -169,7 +154,6 @@ export default function JioSaavnSearch() {
               }}
             />
 
-            {/* Song Info */}
             <div className="flex-1 min-w-0">
               <h3 className="feature-text text-sm mb-1 truncate">
                 {song.name || song.title || 'Unknown'}
@@ -178,7 +162,6 @@ export default function JioSaavnSearch() {
                 {getArtistName(song)}
               </p>
 
-              {/* Play Button */}
               <button
                 onClick={() => playSong(song)}
                 className="btn-primary text-xs px-4 py-1.5"
@@ -190,7 +173,6 @@ export default function JioSaavnSearch() {
         ))}
       </div>
 
-      {/* No Results Message */}
       {!isSearching && songs.length === 0 && !errorMessage && (
         <div className="text-center text-caption mt-12">
           <p className="text-2xl mb-2">🎵</p>
